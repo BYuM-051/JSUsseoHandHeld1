@@ -8,7 +8,31 @@
 lv_obj_t * ui_Screen1 = NULL;
 lv_obj_t * ui_DebugLabel = NULL;
 lv_obj_t * ui_SerialLabel = NULL;
+lv_obj_t * ui_EventOnButton = NULL;
+lv_obj_t * ui_EventOnButtonLabel = NULL;
+lv_obj_t * ui_SC1_TitlePanel = NULL;
+lv_obj_t * ui_SC1_Title = NULL;
 // event funtions
+void ui_event_Screen1(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_SCREEN_UNLOAD_START) {
+        unloadScreen1(e);
+    }
+    if(event_code == LV_EVENT_SCREEN_LOADED) {
+        loadedScreen1(e);
+    }
+}
+
+void ui_event_EventOnButton(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_Screen2, LV_SCR_LOAD_ANIM_OUT_BOTTOM, 300, 0, &ui_Screen2_screen_init);
+    }
+}
 
 // build funtions
 
@@ -31,6 +55,42 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_y(ui_SerialLabel, 32);
     lv_label_set_text(ui_SerialLabel, "SERIAL : _____");
 
+    ui_EventOnButton = lv_btn_create(ui_Screen1);
+    lv_obj_set_width(ui_EventOnButton, 400);
+    lv_obj_set_height(ui_EventOnButton, 80);
+    lv_obj_set_x(ui_EventOnButton, 200);
+    lv_obj_set_y(ui_EventOnButton, 190);
+    lv_obj_add_flag(ui_EventOnButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_EventOnButton, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_EventOnButtonLabel = lv_label_create(ui_EventOnButton);
+    lv_obj_set_width(ui_EventOnButtonLabel, lv_pct(100));
+    lv_obj_set_height(ui_EventOnButtonLabel, lv_pct(100));
+    lv_obj_set_x(ui_EventOnButtonLabel, -1);
+    lv_obj_set_y(ui_EventOnButtonLabel, 0);
+    lv_obj_set_align(ui_EventOnButtonLabel, LV_ALIGN_CENTER);
+    lv_label_set_long_mode(ui_EventOnButtonLabel, LV_LABEL_LONG_DOT);
+    lv_label_set_text(ui_EventOnButtonLabel, "Cause_Event");
+    lv_obj_set_style_text_align(ui_EventOnButtonLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_EventOnButtonLabel, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_SC1_TitlePanel = lv_obj_create(ui_Screen1);
+    lv_obj_set_width(ui_SC1_TitlePanel, 776);
+    lv_obj_set_height(ui_SC1_TitlePanel, 48);
+    lv_obj_set_x(ui_SC1_TitlePanel, 12);
+    lv_obj_set_y(ui_SC1_TitlePanel, 12);
+    lv_obj_clear_flag(ui_SC1_TitlePanel, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_SC1_Title = lv_label_create(ui_SC1_TitlePanel);
+    lv_obj_set_width(ui_SC1_Title, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_SC1_Title, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_SC1_Title, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_SC1_Title, "Screen");
+    lv_obj_set_style_text_font(ui_SC1_Title, &lv_font_montserrat_36, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_add_event_cb(ui_EventOnButton, ui_event_EventOnButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Screen1, ui_event_Screen1, LV_EVENT_ALL, NULL);
+
 }
 
 void ui_Screen1_screen_destroy(void)
@@ -41,5 +101,9 @@ void ui_Screen1_screen_destroy(void)
     ui_Screen1 = NULL;
     ui_DebugLabel = NULL;
     ui_SerialLabel = NULL;
+    ui_EventOnButton = NULL;
+    ui_EventOnButtonLabel = NULL;
+    ui_SC1_TitlePanel = NULL;
+    ui_SC1_Title = NULL;
 
 }

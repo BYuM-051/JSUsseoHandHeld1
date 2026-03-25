@@ -3,24 +3,32 @@
 // LVGL version: 8.3.11
 // Project name: SquareLine_Project
 
-#ifndef _UI_EVENTS_H
-#define _UI_EVENTS_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "ui.h"
 
 extern void unloadScreen1(lv_event_t * e);
+
 extern void loadedScreen1(lv_event_t * e);
+
 extern void unloadScreen2(lv_event_t * e);
+
 extern void loadedScreen2(lv_event_t * e);
-extern void loadedScreen3(lv_event_t * e);
-extern void unloadScreen3(lv_event_t * e);
-extern void loadedScreen4(lv_event_t * e);
-extern void unloadScreen4(lv_event_t * e);
 
-#ifdef __cplusplus
-} /*extern "C"*/
-#endif
+void loadedScreen3(lv_event_t * e)
+{
+	// Your code here
+}
 
-#endif
+void unloadScreen3(lv_event_t * e)
+{
+	// Your code here
+}
+
+void loadedScreen4(lv_event_t * e)
+{
+	// Your code here
+}
+
+void unloadScreen4(lv_event_t * e)
+{
+	// Your code here
+}
