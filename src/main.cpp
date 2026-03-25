@@ -7,86 +7,114 @@
 
 #define __DEBUG__
 
-void uiHandle(void* param);
-#ifdef __DEBUG__
-void deviceInfoLabelHandle(void* param);
-#endif
-
 #define HHUWB Serial1
 
-static constexpr uint32_t kUiTaskStackSize = 4096;
-static constexpr uint32_t kDeviceInfoTaskStackSize = 4096;
-static constexpr uint32_t kUartTimeoutMs = 200;
-static constexpr uint32_t kPingRetryDelayMs = 10;
-static constexpr uint32_t kDevicePollIntervalMs = 1000;
+bool isSerialInUse = false;
 
-static volatile bool isConnected = true;
-static volatile bool labelUpdateExists = false;
-static TaskHandle_t deviceInfoTaskHandle = nullptr;
-
-extern "C" void bibarababira(lv_event_t * e)
-{
-  LV_UNUSED(e);
-}
-
-extern "C" void registerLabelUpdater(lv_event_t * e)
-{
-  LV_UNUSED(e);
-
-  if (deviceInfoTaskHandle != nullptr) {
-    return;
-  }
+volatile bool isConnected = true;
+volatile bool isLabelUpdateExists = false;
+#define UICore 0
+void uiHandle(void* param);
+void setup();
+void loop();
 
 #ifdef __DEBUG__
-  Serial.println("UART to BH0 initialized");
-#endif
-
-  xTaskCreatePinnedToCore(
-    deviceInfoLabelHandle,
-    "DeviceInfoLabelHandle",
-    kDeviceInfoTaskStackSize,
-    NULL,
-    0,
-    &deviceInfoTaskHandle,
-    0
-  );
-}
-
-extern "C" void screen1KillLabelUpdater(lv_event_t * e)
+#define DEVICE_CHECK_CORE 1
+void deviceInfoCheck(void *param)
 {
-  LV_UNUSED(e);
+    #define UART_TIMEOUT_MS 200
 
-  if (deviceInfoTaskHandle == nullptr) {
-    return;
-  }
+    while(true)
+    {
+        if(!isSerialInUse)
+        {
+            bool uwbConnected = false;
 
-  TaskHandle_t taskToDelete = deviceInfoTaskHandle;
-  deviceInfoTaskHandle = nullptr;
-  vTaskDelete(taskToDelete);
+            HHUWB.println("PING");
+            uint32_t startTime = millis();
+            while(millis() - startTime < UART_TIMEOUT_MS)
+            {
+                if(HHUWB.available())
+                {
+                    String response = HHUWB.readStringUntil('\n');
+                    if(response == "PONG")
+                    {
+                        uwbConnected = true;
+                        break;
+                    }
+                }
+                vTaskDelay(pdMS_TO_TICKS(10));
+            }
+
+            if(uwbConnected && !isConnected)
+            {
+                isConnected= true;
+                Serial.println("BH0 is connected");
+                isLabelUpdateExists = true;
+            }
+            else if(!uwbConnected && isConnected)
+            {
+                isConnected = false;
+                Serial.println("BH0 is Timeout");
+                isLabelUpdateExists = true;
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
+#endif
 
 void setup() 
 {
-  gui_start();
+    gui_start();
 
-  xTaskCreatePinnedToCore(
-    uiHandle,
-    "GUI",
-    kUiTaskStackSize,
-    NULL,
-    1,
-    NULL,
-    0
-  );
+    xTaskCreatePinnedToCore
+    (
+        uiHandle,
+        "GUI",
+        4096,
+        NULL,
+        1,
+        NULL,
+        UICore
+    );
 
-#ifdef __DEBUG__
-  Serial.begin(115200);
-  while (!Serial) { delay(10); }
-  Serial.println("Serial initialized");
-#endif
+    #ifdef __DEBUG__
+        lv_label_set_text(ui_DebugLabel, "DEBUG : ENABLED");
+        Serial.begin(115200);
+        while (!Serial) { delay(10); }
+        Serial.println("Serial initialized");
+    #endif
 
-  HHUWB.begin(115200, SERIAL_8N1, GPIO_NUM_17, GPIO_NUM_18);
-  HHUWB.setTimeout(100);
+    HHUWB.begin(115200, SERIAL_8N1, GPIO_NUM_17, GPIO_NUM_18);
+    HHUWB.setTimeout(100);
+    while(!HHUWB) { delay(10); }
+    #ifdef __DEBUG__
+        lv_label_set_text(ui_SerialLabel, "BH0 : Finding...");
+        Serial.println("UART to BH0 initialized");
+
+        xTaskCreatePinnedToCore
+        (
+            deviceInfoCheck,
+            "DeviceInfoCheck",
+            1024,
+            NULL,
+            0,
+            NULL,
+            DEVICE_CHECK_CORE
+        );
+    #endif
+
+    #ifdef __DEBUG__
+        if(psramInit())
+        {
+            Serial.printf("PSRAM init. Total : %d bytes, Free : %d bytes \n", ESP.getPsramSize(), ESP.getFreePsram());
+        }
+        else
+        {
+            Serial.println("PSRAM init failed!");
+        }
+    #endif
 }
 
 void loop()
@@ -94,54 +122,23 @@ void loop()
 
 }
 
+
 void uiHandle(void* param)
 {
-  uint32_t lastTick = millis();
-  while (true) {
-    if (labelUpdateExists && ui_DeviceInfoLabel != nullptr) {
-      lv_label_set_text(ui_DeviceInfoLabel, isConnected ? "BH0 : Connected" : "BH0 : Disconnected");
-      labelUpdateExists = false;
-    }
-
-    const uint32_t now = millis();
-    lv_tick_inc(now - lastTick);
-    lastTick = now;
-    const uint32_t wait = lv_timer_handler();
-    vTaskDelay(pdMS_TO_TICKS(wait > 0 ? min<uint32_t>(wait, 5) : 1));
-  }
-}
-
-#ifdef __DEBUG__
-void deviceInfoLabelHandle(void *param)
-{
-  LV_UNUSED(param);
-
-  while (true) {
-    bool uwbConnected = false;
-
-    Serial.println("Ping");
-    HHUWB.println("PING");
-
-    const uint32_t startTime = millis();
-    while (millis() - startTime < kUartTimeoutMs) {
-      if (HHUWB.available()) {
-        String response = HHUWB.readStringUntil('\n');
-        response.trim();
-        if (response == "PONG") {
-          uwbConnected = true;
-          break;
+    TickType_t lastWakeTime = xTaskGetTickCount();
+    constexpr TickType_t frequency = pdMS_TO_TICKS(10);
+    while(true)
+    {
+        if(isLabelUpdateExists)
+        {
+            lv_label_set_text(ui_SerialLabel, isConnected ? "BH0 : Connected" : "BH0 : Disconnected");
+            lv_obj_invalidate(ui_SerialLabel);
+            isLabelUpdateExists = false;
         }
-      }
-      vTaskDelay(pdMS_TO_TICKS(kPingRetryDelayMs));
+        lv_tick_inc(10);
+        lv_timer_handler();
+        xTaskDelayUntil(&lastWakeTime, frequency);
     }
-
-    if (uwbConnected != isConnected) {
-      isConnected = uwbConnected;
-      labelUpdateExists = true;
-      Serial.println(isConnected ? "BH0 is connected" : "BH0 is Timeout");
-    }
-
-    vTaskDelay(pdMS_TO_TICKS(kDevicePollIntervalMs));
-  }
 }
-#endif
+
+

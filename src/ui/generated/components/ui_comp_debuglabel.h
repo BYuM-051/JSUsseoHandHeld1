@@ -3,22 +3,22 @@
 // LVGL version: 8.3.11
 // Project name: SquareLine_Project
 
-#ifndef UI_SCREEN2_H
-#define UI_SCREEN2_H
+#ifndef _UI_COMP_DEBUGLABEL_H
+#define _UI_COMP_DEBUGLABEL_H
+
+#include "../ui.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// SCREEN: ui_Screen2
-extern void ui_Screen2_screen_init(void);
-extern void ui_Screen2_screen_destroy(void);
-extern lv_obj_t * ui_Screen2;
-// CUSTOM VARIABLES
+// COMPONENT DebugLabel
+#define UI_COMP_DEBUGLABEL_DEBUGLABEL 0
+#define _UI_COMP_DEBUGLABEL_NUM 1
+lv_obj_t * ui_DebugLabel_create(lv_obj_t * comp_parent);
 
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
 
 #endif
-

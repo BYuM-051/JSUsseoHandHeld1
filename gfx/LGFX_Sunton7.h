@@ -1,3 +1,6 @@
+#ifndef LGFX_SUNTON7_H_
+#define LGFX_SUNTON7_H_
+
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 
@@ -106,3 +109,5 @@ public:
     setPanel(&_panel_instance);
   }
 };
+
+#endif

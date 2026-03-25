@@ -10,10 +10,6 @@
 extern "C" {
 #endif
 
-void screen1KillLabelUpdater(lv_event_t * e);
-void registerLabelUpdater(lv_event_t * e);
-void bibarababira(lv_event_t * e);
-
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
