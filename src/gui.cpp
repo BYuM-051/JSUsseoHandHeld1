@@ -54,8 +54,6 @@ void my_touchpad_read( lv_indev_drv_t * indev_driver, lv_indev_data_t * data )
 
 void gui_start()
 {
-    
-
   // ----------- GFX -------------
   gfx.begin();
   gfx.setBrightness(127);

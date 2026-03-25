@@ -3,10 +3,10 @@
 #include <Wire.h>
 #include "gui.h"
 #include "ui.h"
-#include "screens/ui_Screen1.h"
-#include "screens/ui_Screen2.h"
-#include "screens/ui_Screen3.h"
-#include "screens/ui_Screen4.h"
+// #include "screens/ui_Screen1.h"
+// #include "screens/ui_Screen2.h"
+// #include "screens/ui_Screen3.h"
+// #include "screens/ui_Screen4.h"
 #include "ui_events.h"
 
 #define __DEBUG__
@@ -27,7 +27,7 @@ void loop();
 #define UART_TIMEOUT_MS 200
 #define BH0_UART_RX_PIN GPIO_NUM_17
 #define BH0_UART_TX_PIN GPIO_NUM_18
-void deviceInfoCheck(void *param)
+void deviceInfoCheck(void *param) // TODO : refactor this with char array buffer instead of String to avoid dynamic memory allocation
 {
 
     while(true)
