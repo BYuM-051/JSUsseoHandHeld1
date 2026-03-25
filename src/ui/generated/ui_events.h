@@ -10,14 +10,14 @@
 extern "C" {
 #endif
 
-extern void unloadScreen1(lv_event_t * e);
-extern void loadedScreen1(lv_event_t * e);
-extern void unloadScreen2(lv_event_t * e);
-extern void loadedScreen2(lv_event_t * e);
-extern void loadedScreen3(lv_event_t * e);
-extern void unloadScreen3(lv_event_t * e);
-extern void loadedScreen4(lv_event_t * e);
-extern void unloadScreen4(lv_event_t * e);
+void unloadScreen1(lv_event_t * e);
+void loadedScreen1(lv_event_t * e);
+void unloadScreen2(lv_event_t * e);
+void loadedScreen2(lv_event_t * e);
+void loadedScreen3(lv_event_t * e);
+void unloadScreen3(lv_event_t * e);
+void loadedScreen4(lv_event_t * e);
+void unloadScreen4(lv_event_t * e);
 
 #ifdef __cplusplus
 } /*extern "C"*/

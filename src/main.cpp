@@ -5,6 +5,8 @@
 #include "ui.h"
 #include "screens/ui_Screen1.h"
 #include "screens/ui_Screen2.h"
+#include "screens/ui_Screen3.h"
+#include "screens/ui_Screen4.h"
 #include "ui_events.h"
 
 #define __DEBUG__
