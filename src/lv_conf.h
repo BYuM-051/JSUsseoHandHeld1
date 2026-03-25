@@ -88,7 +88,7 @@
  *====================*/
 
 /** Default display refresh, input device read and animation step period. */
-#define LV_DEF_REFR_PERIOD  33      /**< [ms] */
+#define LV_DEF_REFR_PERIOD  16      /**< [ms] */
 
 /** Default Dots Per Inch. Used to initialize default sizes such as widgets sized, style paddings.
  * (Not so important, you can adjust it to modify default sizes and spaces.) */
@@ -107,7 +107,7 @@
  * - LV_OS_MQX
  * - LV_OS_SDL2
  * - LV_OS_CUSTOM */
-#define LV_USE_OS   LV_OS_NONE
+#define LV_USE_OS   LV_OS_FREERTOS
 
 #if LV_USE_OS == LV_OS_CUSTOM
     #define LV_OS_CUSTOM_INCLUDE <stdint.h>
@@ -174,7 +174,7 @@
      * - bitmaps with transparency may use ARGB8888
      */
     #define LV_DRAW_SW_SUPPORT_RGB565       1
-    #define LV_DRAW_SW_SUPPORT_RGB565_SWAPPED       1
+    #define LV_DRAW_SW_SUPPORT_RGB565_SWAPPED       0
     #define LV_DRAW_SW_SUPPORT_RGB565A8     1
     #define LV_DRAW_SW_SUPPORT_RGB888       1
     #define LV_DRAW_SW_SUPPORT_XRGB8888     1
@@ -544,7 +544,7 @@
  *  If size is not set to 0, the decoder will fail to decode when the cache is full.
  *  If size is 0, the cache function is not enabled and the decoded memory will be
  *  released immediately after use. */
-#define LV_CACHE_DEF_SIZE       0
+#define LV_CACHE_DEF_SIZE       (32 * 1024)
 
 /** Default number of image header cache entries. The cache is used to store the headers of images
  *  The main logic is like `LV_CACHE_DEF_SIZE` but for image headers. */
@@ -614,7 +614,7 @@
 
 /** Will be added where memory needs to be aligned (with -Os data might not be aligned to boundary by default).
  *  E.g. __attribute__((aligned(4)))*/
-#define LV_ATTRIBUTE_MEM_ALIGN
+#define LV_ATTRIBUTE_MEM_ALIGN __attribute__((aligned(32)))
 
 /** Attribute to mark large constant arrays, for example for font bitmaps */
 #define LV_ATTRIBUTE_LARGE_CONST
