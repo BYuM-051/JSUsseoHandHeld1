@@ -6,14 +6,16 @@
 #include "../ui.h"
 
 lv_obj_t * ui_Screen2 = NULL;
-lv_obj_t * ui_CallRobotButton = NULL;
-lv_obj_t * ui_CallRobotButtonLabel = NULL;
-lv_obj_t * ui_ToShelterButton = NULL;
-lv_obj_t * ui_ToShelterButtonLabel = NULL;
 lv_obj_t * ui_SC2_Title_Panel = NULL;
 lv_obj_t * ui_SC2_Title = NULL;
 lv_obj_t * ui_SC2ReturnButton = NULL;
 lv_obj_t * ui_SC2ReturnButtonLabel = NULL;
+lv_obj_t * ui_SC2_Body_Panel = NULL;
+lv_obj_t * ui_SC2_Footer_Panel = NULL;
+lv_obj_t * ui_ToShelterButton = NULL;
+lv_obj_t * ui_ToShelterButtonLabel = NULL;
+lv_obj_t * ui_CallRobotButton = NULL;
+lv_obj_t * ui_CallRobotButtonLabel = NULL;
 // event funtions
 void ui_event_Screen2(lv_event_t * e)
 {
@@ -27,12 +29,12 @@ void ui_event_Screen2(lv_event_t * e)
     }
 }
 
-void ui_event_CallRobotButton(lv_event_t * e)
+void ui_event_SC2ReturnButton(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
 
     if(event_code == LV_EVENT_CLICKED) {
-        _ui_screen_change(&ui_Screen3, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_Screen3_screen_init);
+        _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_Screen1_screen_init);
     }
 }
 
@@ -45,12 +47,12 @@ void ui_event_ToShelterButton(lv_event_t * e)
     }
 }
 
-void ui_event_SC2ReturnButton(lv_event_t * e)
+void ui_event_CallRobotButton(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
 
     if(event_code == LV_EVENT_CLICKED) {
-        _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_Screen1_screen_init);
+        _ui_screen_change(&ui_Screen3, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_Screen3_screen_init);
     }
 }
 
@@ -60,38 +62,6 @@ void ui_Screen2_screen_init(void)
 {
     ui_Screen2 = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_Screen2, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-
-    ui_CallRobotButton = lv_btn_create(ui_Screen2);
-    lv_obj_set_width(ui_CallRobotButton, 376);
-    lv_obj_set_height(ui_CallRobotButton, 64);
-    lv_obj_set_x(ui_CallRobotButton, 12);
-    lv_obj_set_y(ui_CallRobotButton, 396);
-    lv_obj_add_flag(ui_CallRobotButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
-    lv_obj_clear_flag(ui_CallRobotButton, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-
-    ui_CallRobotButtonLabel = lv_label_create(ui_CallRobotButton);
-    lv_obj_set_width(ui_CallRobotButtonLabel, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_CallRobotButtonLabel, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_CallRobotButtonLabel, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_CallRobotButtonLabel, "Call Robot");
-    lv_obj_set_style_text_align(ui_CallRobotButtonLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_CallRobotButtonLabel, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_ToShelterButton = lv_btn_create(ui_Screen2);
-    lv_obj_set_width(ui_ToShelterButton, 376);
-    lv_obj_set_height(ui_ToShelterButton, 64);
-    lv_obj_set_x(ui_ToShelterButton, 412);
-    lv_obj_set_y(ui_ToShelterButton, 396);
-    lv_obj_add_flag(ui_ToShelterButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
-    lv_obj_clear_flag(ui_ToShelterButton, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-
-    ui_ToShelterButtonLabel = lv_label_create(ui_ToShelterButton);
-    lv_obj_set_width(ui_ToShelterButtonLabel, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_ToShelterButtonLabel, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_ToShelterButtonLabel, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_ToShelterButtonLabel, "To Shelter");
-    lv_obj_set_style_text_align(ui_ToShelterButtonLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_ToShelterButtonLabel, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_SC2_Title_Panel = lv_obj_create(ui_Screen2);
     lv_obj_set_width(ui_SC2_Title_Panel, 776);
@@ -125,9 +95,59 @@ void ui_Screen2_screen_init(void)
     lv_label_set_text(ui_SC2ReturnButtonLabel, "<");
     lv_obj_set_style_text_font(ui_SC2ReturnButtonLabel, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_obj_add_event_cb(ui_CallRobotButton, ui_event_CallRobotButton, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(ui_ToShelterButton, ui_event_ToShelterButton, LV_EVENT_ALL, NULL);
+    ui_SC2_Body_Panel = lv_obj_create(ui_Screen2);
+    lv_obj_set_width(ui_SC2_Body_Panel, 776);
+    lv_obj_set_height(ui_SC2_Body_Panel, 304);
+    lv_obj_set_x(ui_SC2_Body_Panel, 12);
+    lv_obj_set_y(ui_SC2_Body_Panel, 72);
+    lv_obj_clear_flag(ui_SC2_Body_Panel, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_SC2_Footer_Panel = lv_obj_create(ui_Screen2);
+    lv_obj_set_width(ui_SC2_Footer_Panel, 776);
+    lv_obj_set_height(ui_SC2_Footer_Panel, 80);
+    lv_obj_set_x(ui_SC2_Footer_Panel, 12);
+    lv_obj_set_y(ui_SC2_Footer_Panel, 388);
+    lv_obj_clear_flag(ui_SC2_Footer_Panel, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_pad_left(ui_SC2_Footer_Panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_SC2_Footer_Panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_SC2_Footer_Panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_SC2_Footer_Panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_ToShelterButton = lv_btn_create(ui_SC2_Footer_Panel);
+    lv_obj_set_width(ui_ToShelterButton, 376);
+    lv_obj_set_height(ui_ToShelterButton, 64);
+    lv_obj_set_x(ui_ToShelterButton, 8);
+    lv_obj_set_y(ui_ToShelterButton, 8);
+    lv_obj_add_flag(ui_ToShelterButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_ToShelterButton, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_ToShelterButtonLabel = lv_label_create(ui_ToShelterButton);
+    lv_obj_set_width(ui_ToShelterButtonLabel, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_ToShelterButtonLabel, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_ToShelterButtonLabel, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_ToShelterButtonLabel, "To Shelter");
+    lv_obj_set_style_text_align(ui_ToShelterButtonLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_ToShelterButtonLabel, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_CallRobotButton = lv_btn_create(ui_SC2_Footer_Panel);
+    lv_obj_set_width(ui_CallRobotButton, 376);
+    lv_obj_set_height(ui_CallRobotButton, 64);
+    lv_obj_set_x(ui_CallRobotButton, 392);
+    lv_obj_set_y(ui_CallRobotButton, 8);
+    lv_obj_add_flag(ui_CallRobotButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_CallRobotButton, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_CallRobotButtonLabel = lv_label_create(ui_CallRobotButton);
+    lv_obj_set_width(ui_CallRobotButtonLabel, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_CallRobotButtonLabel, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_CallRobotButtonLabel, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_CallRobotButtonLabel, "Call Robot");
+    lv_obj_set_style_text_align(ui_CallRobotButtonLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_CallRobotButtonLabel, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+
     lv_obj_add_event_cb(ui_SC2ReturnButton, ui_event_SC2ReturnButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_ToShelterButton, ui_event_ToShelterButton, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_CallRobotButton, ui_event_CallRobotButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Screen2, ui_event_Screen2, LV_EVENT_ALL, NULL);
 
 }
@@ -138,13 +158,15 @@ void ui_Screen2_screen_destroy(void)
 
     // NULL screen variables
     ui_Screen2 = NULL;
-    ui_CallRobotButton = NULL;
-    ui_CallRobotButtonLabel = NULL;
-    ui_ToShelterButton = NULL;
-    ui_ToShelterButtonLabel = NULL;
     ui_SC2_Title_Panel = NULL;
     ui_SC2_Title = NULL;
     ui_SC2ReturnButton = NULL;
     ui_SC2ReturnButtonLabel = NULL;
+    ui_SC2_Body_Panel = NULL;
+    ui_SC2_Footer_Panel = NULL;
+    ui_ToShelterButton = NULL;
+    ui_ToShelterButtonLabel = NULL;
+    ui_CallRobotButton = NULL;
+    ui_CallRobotButtonLabel = NULL;
 
 }

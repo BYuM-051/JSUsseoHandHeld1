@@ -20,6 +20,8 @@ extern lv_obj_t * ui_SC3_Title;
 extern void ui_event_SC3ReturnButton(lv_event_t * e);
 extern lv_obj_t * ui_SC3ReturnButton;
 extern lv_obj_t * ui_SC3ReturnButtonLabel;
+extern lv_obj_t * ui_SC3_Footer_Panel;
+extern lv_obj_t * ui_SC3_Body_Panel;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus
