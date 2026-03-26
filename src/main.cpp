@@ -1,25 +1,21 @@
-#include <Arduino.h>
 #include <RTOS.h>
+#define __DEBUG__
+
+// arduino core ============================================================
+#include <Arduino.h>
+void setup();
+void loop();
+
+// lvgl systen =============================================================
 #include "gui.h"
 #include "ui.h"
 #include "ui_events.h"
 
-#define __DEBUG__
-
-bool isSerialInUse = false;
-
-volatile bool isConnected = false;
 volatile bool isLabelUpdateExists = true;
 #define UICore 1
 void uiHandle(void* param);
-void setup();
-void loop();
 
-volatile TickType_t lastBRUpdateTime = 0;
-volatile TickType_t lastBSUpdateTime = 0;
-volatile uint32_t distanceBetweenBHAndBR = 0;
-volatile uint32_t distanceBetweenBHAndBS = 0;
-
+// UART Communication with BH0 =============================================
 #include "driver/uart.h"
 QueueHandle_t hhuwbEventQueue;
 #define MAX_SERIAL_LENGTH 64
@@ -30,6 +26,11 @@ void uartListener(void *param);
 void onUARTDataReceived(uint8_t *data);
 #define UART_LISTENER_CORE 0
 #define UART_BLOCK_TICKS pdMS_TO_TICKS(portMAX_DELAY)
+volatile bool isConnected = false;
+volatile TickType_t lastBRUpdateTime = 0;
+volatile TickType_t lastBSUpdateTime = 0;
+volatile uint32_t distanceBetweenBHAndBR = 0;
+volatile uint32_t distanceBetweenBHAndBS = 0;
 
 #ifdef __DEBUG__
     volatile int pingCount = 0;
@@ -37,6 +38,10 @@ void onUARTDataReceived(uint8_t *data);
     #undef UART_BLOCK_TICKS
     #define UART_BLOCK_TICKS pdMS_TO_TICKS(1000)
 #endif
+
+// ESP NOW Communication with BR and BS ====================================
+
+//==========================================================================
 
 void setup() 
 {
@@ -56,8 +61,8 @@ void setup()
         lv_label_set_text(ui_DebugLabel, "DEBUG : ENABLED");
         lv_label_set_text(ui_SerialLabel, "BH0 : Searching...");
     #else
-        ui_DebugLabel->set_hidden(true);
-        ui_SerialLabel->set_hidden(true);
+        lv_obj_add_flag(ui_DebugLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(ui_SerialLabel, LV_OBJ_FLAG_HIDDEN);
     #endif
 
     xTaskCreatePinnedToCore
@@ -98,6 +103,8 @@ void setup()
         UART_LISTENER_CORE
     );
     //===========================================================================
+
+
 }
 
 void loop()
@@ -167,6 +174,9 @@ void uartListener(void *param)
                     break;
                 
                 default:
+                    #ifdef __DEBUG__
+                        Serial.printf("Unknown UART Event Type: %d\n", event.type);
+                    #endif
                     break;
             }
         }
@@ -189,7 +199,21 @@ void uartListener(void *param)
 
 void onUARTDataReceived(uint8_t *data)
 {
-    // Handle received UART data
+    char *cmdText = (char *) data;
+    if(strcmp(cmdText, "PONG") == 0)
+    {
+        // Ping Pong Command, Do nothing
+    }
+    else if(strcmp(cmdText, "") == 0)
+    {
+
+    }
+    else
+    {
+        #ifdef __DEBUG__
+            Serial.printf("Unknown Command Received : %s\n", cmdText);
+        #endif
+    }
 }
 
 // extenral UI events============================================================
