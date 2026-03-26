@@ -48,20 +48,24 @@ void uiHandle(void* param);
 
 // UART Communication ======================================================
 #include "driver/uart.h"
-QueueHandle_t hhuwbEventQueue;
 #define MAX_SERIAL_LENGTH 64
 #define HHUWB UART_NUM_1
 #define BH0_UART_RX_PIN GPIO_NUM_17
 #define BH0_UART_TX_PIN GPIO_NUM_18
-void uartListener(void *param);
-void onUARTDataReceived(char *cmdText);
 #define UART_LISTENER_CORE 0
 #define UART_BLOCK_TICKS pdMS_TO_TICKS(portMAX_DELAY)
+
+QueueHandle_t hhuwbEventQueue;
+
 volatile bool isConnected = false;
 volatile TickType_t lastBRUpdateTime = 0;
 volatile TickType_t lastBSUpdateTime = 0;
 volatile uint32_t distanceBetweenBHAndBR = 0;
 volatile uint32_t distanceBetweenBHAndBS = 0;
+
+void uartListener(void *param);
+void onUARTDataReceived(char *cmdText);
+void uartPrintf(uart_port_t uart_num, const char *format, ...);
 
 #ifdef __DEBUG__
     volatile int pingCount = 0;
@@ -88,8 +92,10 @@ QueueHandle_t espNowRecvQueue;
 
 void espNowInit(void);
 void espNowDataRecvCallback(const uint8_t *mac_addr, const uint8_t *data, int len);
+void espNowDataSendCallback(const uint8_t *mac_addr, esp_now_send_status_t status);
 void espNowListnener(void *param);
 void onESPNowDataReceived(char *cmdText);
+void espNowPrintf(const uint8_t *mac_addr, const char *format, ...);
 // UWB Communication =======================================================
 // NOTE : UWB Communication is handled by BH0, BH1 only receives data from BH0 via UART, so UWB related code is not included in this file.
 
@@ -270,6 +276,16 @@ void onUARTDataReceived(char *cmdText)
     }
 }
 
+void uartPrintf(uart_port_t uart_num, const char *format, ...)
+{
+    char buffer[250];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+    uart_write_bytes(uart_num, buffer, strlen(buffer));
+}
+
 // ESP NOW Communication ========================================================
 void espNowInit(void)
 {
@@ -287,24 +303,31 @@ void espNowInit(void)
         esp_now_peer_info_t peerInfo = {};
         peerInfo.channel = ESP_NOW_CHANNEL;
         peerInfo.encrypt = false;
-        memcpy(peerInfo.peer_addr, MAC_ADDR[i], 6);
-
+        if(i == currentBoard)
+        {
+            peerInfo.peer_addr[0] = 0x02; // Locally Administered dummy Address
+        }
+        else
+        {
+            memcpy(peerInfo.peer_addr, MAC_ADDR[i], 6);
+        }
         if(esp_now_add_peer(&peerInfo) != ESP_OK)
         {
             #ifdef __DEBUG__
                 Serial.println("Failed to add ESP-NOW peer");
             #endif
         }
-        #ifdef __DEBUG__
-            else
-            {
-                Serial.print("Added ESP-NOW peer: ");
-                Serial.printf("%02X:%02X:%02X:%02X:%02X:%02X\n", MAC_ADDR[i][0], MAC_ADDR[i][1], MAC_ADDR[i][2], MAC_ADDR[i][3], MAC_ADDR[i][4], MAC_ADDR[i][5]);
-            }
-        #endif
-    }
+        else
+        {
+            #ifdef __DEBUG__
+            Serial.print("Added ESP-NOW peer: ");
+            Serial.printf("%02X:%02X:%02X:%02X:%02X:%02X\n", peerInfo.peer_addr[0], peerInfo.peer_addr[1], peerInfo.peer_addr[2], peerInfo.peer_addr[3], peerInfo.peer_addr[4], peerInfo.peer_addr[5]);
+            #endif
+        }
+}
 
     esp_now_register_recv_cb(espNowDataRecvCallback);
+    esp_now_register_send_cb(espNowDataSendCallback);
     espNowRecvQueue = xQueueCreate(10, sizeof(espNowPacket_t));
     xTaskCreatePinnedToCore
     (
@@ -388,6 +411,25 @@ void onESPNowDataReceived(char *cmdText)
             Serial.printf("Unknown ESP-NOW Command Received : %s\n", cmdText);
         #endif
     }
+}
+
+//esp_now_send(targetMac, (uint8_t *)msg, len);
+void espNowDataSendCallback(const uint8_t *mac_addr, esp_now_send_status_t status)
+{
+    #ifdef __DEBUG__
+        Serial.print("ESP-NOW Data Send Callback, Status: ");
+        Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Failure");
+    #endif
+}
+
+void espNowPrintf(const uint8_t *mac_addr, const char *format, ...)
+{
+    char buffer[250];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+    esp_now_send(mac_addr, (uint8_t *)buffer, strlen(buffer));
 }
 
 // extenral UI events============================================================
