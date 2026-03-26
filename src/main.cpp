@@ -1,13 +1,10 @@
 #include <Arduino.h>
 #include <RTOS.h>
-#include <Wire.h>
 #include "gui.h"
 #include "ui.h"
 #include "ui_events.h"
 
 #define __DEBUG__
-
-#define HHUWB Serial1
 
 bool isSerialInUse = false;
 
@@ -23,48 +20,22 @@ volatile TickType_t lastBSUpdateTime = 0;
 volatile uint32_t distanceBetweenBHAndBR = 0;
 volatile uint32_t distanceBetweenBHAndBS = 0;
 
+#include "driver/uart.h"
+QueueHandle_t hhuwbEventQueue;
+#define MAX_SERIAL_LENGTH 64
+#define HHUWB UART_NUM_1
 #define BH0_UART_RX_PIN GPIO_NUM_17
 #define BH0_UART_TX_PIN GPIO_NUM_18
 void uartListener(void *param);
-void onUARTDataReceived(void *param);
+void onUARTDataReceived(uint8_t *data);
 #define UART_LISTENER_CORE 0
+#define UART_BLOCK_TICKS pdMS_TO_TICKS(portMAX_DELAY)
+
 #ifdef __DEBUG__
-#define DEVICE_CHECK_CORE 0
-#define UART_TIMEOUT_MS 200
-void deviceInfoCheck(void *param) // TODO : refactor this with char array buffer instead of String to avoid dynamic memory allocation
-{
-
-    while(true)
-    {
-        if(!isSerialInUse)
-        {
-            bool uwbConnected = false;
-
-            HHUWB.println("PING");
-            uint32_t startTime = millis();
-            while(millis() - startTime < UART_TIMEOUT_MS)
-            {
-                if(HHUWB.available())
-                {
-                    String response = HHUWB.readStringUntil('\n');
-                    if(response == "PONG")
-                    {
-                        uwbConnected = true;
-                        break;
-                    }
-                }
-                vTaskDelay(pdMS_TO_TICKS(10));
-            }
-            
-            if((uwbConnected && !isConnected) || (!uwbConnected && isConnected))
-            {
-                isLabelUpdateExists = true;
-            }
-            isConnected = uwbConnected;
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
+    volatile int pingCount = 0;
+    #define MAX_PING_COUNT 5
+    #undef UART_BLOCK_TICKS
+    #define UART_BLOCK_TICKS pdMS_TO_TICKS(1000)
 #endif
 
 void setup() 
@@ -102,23 +73,19 @@ void setup()
     //===========================================================================
 
     // Initialize UART for BH0 Communication ====================================
-    HHUWB.begin(115200, SERIAL_8N1, BH0_UART_RX_PIN, BH0_UART_TX_PIN);
-    HHUWB.setTimeout(100);
+    constexpr uart_port_t hhuwbUART = UART_NUM_1;
+    uart_config_t uartConfig = {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity    = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+    };
+    uart_param_config(hhuwbUART, &uartConfig);
+    uart_set_pin(hhuwbUART, BH0_UART_TX_PIN, BH0_UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    uart_driver_install(hhuwbUART, 1024 * 2, 1024 * 2, 20, &hhuwbEventQueue, 0);
+    
     delay(500); // delay to ensure Serial is ready before sending data
-    #ifdef __DEBUG__
-        Serial.println("UART to BH0 initialized");
-
-        xTaskCreatePinnedToCore
-        (
-            deviceInfoCheck,
-            "DeviceInfoCheck",
-            4096,
-            NULL,
-            0,
-            NULL,
-            DEVICE_CHECK_CORE
-        );
-    #endif
 
     xTaskCreatePinnedToCore
     (
@@ -162,19 +129,67 @@ void uiHandle(void *param)
 }
 
 // UART Listener Task ===========================================================
-void uartListener(void *param)
+void uartListener(void *param) 
 {
-    TickType_t lastWakeTime = xTaskGetTickCount();
-    constexpr TickType_t frequency = pdMS_TO_TICKS(10);
-    while(true)
+    uart_event_t event;
+    uint8_t* data = (uint8_t*) malloc(MAX_SERIAL_LENGTH * sizeof(char));
+    
+    while(true) 
     {
-
+        #ifdef __DEBUG__
+            Serial.println("UART Listener Task Running");
+        #endif
+        if(xQueueReceive(hhuwbEventQueue, (void *)&event, UART_BLOCK_TICKS)) 
+        {
+            #ifdef __DEBUG__
+                pingCount = 0;
+                Serial.println("UART From BH0 Event Received");
+                isLabelUpdateExists = !isConnected;
+                isConnected = true;
+            #endif
+            switch(event.type) 
+            {
+                case UART_DATA:
+                    int len;
+                    uart_get_buffered_data_len(UART_NUM_1, (size_t*)&len);
+                    len = uart_read_bytes(UART_NUM_1, data, len, 100 / portTICK_PERIOD_MS);
+                    
+                    if(len > 0) 
+                    {
+                        data[len] = '\0';
+                        onUARTDataReceived(data);
+                    }
+                    break;
+                
+                case UART_FIFO_OVF:
+                    uart_flush_input(UART_NUM_1);
+                    xQueueReset(hhuwbEventQueue);
+                    break;
+                
+                default:
+                    break;
+            }
+        }
+        #ifdef __DEBUG__
+        else
+        {
+            uart_write_bytes(UART_NUM_1, "PING\n", 5);
+            if(pingCount > MAX_PING_COUNT)
+            {
+                pingCount = 0;
+                isLabelUpdateExists = isConnected;
+                isConnected = false;
+            }
+            else
+                {pingCount++;}
+        }
+        #endif
     }
 }
 
-void onUARTDataReceived(void *param)
+void onUARTDataReceived(uint8_t *data)
 {
-    vTaskDelete(NULL);
+    // Handle received UART data
 }
 
 // extenral UI events============================================================
