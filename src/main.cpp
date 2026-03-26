@@ -1,10 +1,41 @@
+// NOTE : I know that you wont read this sentence :/
 #include <RTOS.h>
 #define __DEBUG__
 
+#define currentBoard BH1
 // arduino core ============================================================
 #include <Arduino.h>
 void setup();
 void loop();
+
+// Project BOARD Info ======================================================
+#define MAX_BOARDS 6
+#define BR0 0
+#define BR1 1
+#define BR2 2
+#define BH0 3
+#define BH1 4
+#define BS0 5
+
+constexpr uint8_t MAC_ADDR [MAX_BOARDS][6] = 
+{
+    {0x20, 0x43, 0xA8, 0x42, 0x0C, 0xC8}, // BR0
+    {0xC0, 0x5D, 0x89, 0xE9, 0x1C, 0x30}, // BR1
+    {0x20, 0x43, 0xA8, 0x42, 0x0C, 0xCC}, // BR2
+    {0x20, 0x43, 0xA8, 0x42, 0x10, 0xEC}, // BH0
+    {0x3C, 0x84, 0x27, 0xFC, 0xD8, 0x94}, // BH1
+    {0xC0, 0x5D, 0x89, 0xE9, 0x1C, 0x44}  // BS0
+};
+
+constexpr uint16_t UWB_ID [MAX_BOARDS] = 
+{
+    0x100,  // BR0
+    0x101,  // BR1
+    0x102,  // BR2
+    0x200,  // BH0
+    0x000,  // BH1 (N/A)
+    0x300   // BS0
+};
 
 // lvgl systen =============================================================
 #include "gui.h"
@@ -15,7 +46,7 @@ volatile bool isLabelUpdateExists = true;
 #define UICore 1
 void uiHandle(void* param);
 
-// UART Communication with BH0 =============================================
+// UART Communication ======================================================
 #include "driver/uart.h"
 QueueHandle_t hhuwbEventQueue;
 #define MAX_SERIAL_LENGTH 64
@@ -39,7 +70,28 @@ volatile uint32_t distanceBetweenBHAndBS = 0;
     #define UART_BLOCK_TICKS pdMS_TO_TICKS(1000)
 #endif
 
-// ESP NOW Communication with BR and BS ====================================
+// ESP NOW Communication ===================================================
+#include <WiFi.h>
+#include <esp_now.h>
+
+#define ESP_NOW_CHANNEL 1U
+#define ESP_NOW_LISTENER_CORE 0
+
+typedef struct 
+{
+    uint8_t macAddr[6];
+    uint8_t data[250];
+    int len;
+} espNowPacket_t;
+
+QueueHandle_t espNowRecvQueue;
+
+void espNowInit(void);
+void espNowDataRecvCallback(const uint8_t *mac_addr, const uint8_t *data, int len);
+void espNowListnener(void *param);
+void onESPNowDataReceived(espNowPacket_t *packet);
+// UWB Communication =======================================================
+// NOTE : UWB Communication is handled by BH0, BH1 only receives data from BH0 via UART, so UWB related code is not included in this file.
 
 //==========================================================================
 
@@ -104,7 +156,10 @@ void setup()
     );
     //===========================================================================
 
-
+    // Initialize ESP-NOW Communication =========================================
+    espNowInit();
+    delay(500);
+    //===========================================================================
 }
 
 void loop()
@@ -214,6 +269,69 @@ void onUARTDataReceived(uint8_t *data)
             Serial.printf("Unknown Command Received : %s\n", cmdText);
         #endif
     }
+}
+
+// ESP NOW Communication ========================================================
+void espNowInit(void)
+{
+    WiFi.mode(WIFI_STA);
+    if(esp_now_init() != ESP_OK)
+    {
+        #ifdef __DEBUG__
+            Serial.println("ESP-NOW Initialization Failed");
+        #endif
+        return;
+    }
+
+    for(int i = 0 ; i < MAX_BOARDS ; i++)
+    {
+        esp_now_peer_info_t peerInfo = {};
+        peerInfo.channel = ESP_NOW_CHANNEL;
+        peerInfo.encrypt = false;
+        memcpy(peerInfo.peer_addr, MAC_ADDR[i], 6);
+
+        if(esp_now_add_peer(&peerInfo) != ESP_OK)
+        {
+            #ifdef __DEBUG__
+                Serial.println("Failed to add ESP-NOW peer");
+            #endif
+        }
+        #ifdef __DEBUG__
+            else
+            {
+                Serial.print("Added ESP-NOW peer: ");
+                Serial.printf("%02X:%02X:%02X:%02X:%02X:%02X\n", MAC_ADDR[i][0], MAC_ADDR[i][1], MAC_ADDR[i][2], MAC_ADDR[i][3], MAC_ADDR[i][4], MAC_ADDR[i][5]);
+            }
+        #endif
+    }
+
+    esp_now_register_recv_cb(espNowDataRecvCallback);
+    espNowRecvQueue = xQueueCreate(10, sizeof(espNowPacket_t));
+    xTaskCreatePinnedToCore
+    (
+        espNowListnener,
+        "espNowListener",
+        4096,
+        NULL,
+        2,
+        NULL,
+        ESP_NOW_LISTENER_CORE
+    );
+}
+
+void espNowDataRecvCallback(const uint8_t *mac_addr, const uint8_t *data, int len)
+{
+    //TODO : repay the techdept. Do this with my own hands.
+}
+
+void espNowListnener(void *param)
+{
+    //TODO : Implement ESP-NOW Data Handling Logic
+}
+
+void onESPNowDataReceived(espNowPacket_t *packet)
+{
+    //TODO : Implement ESP-NOW Data Handling Logic
 }
 
 // extenral UI events============================================================
