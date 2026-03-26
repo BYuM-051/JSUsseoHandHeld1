@@ -54,7 +54,7 @@ QueueHandle_t hhuwbEventQueue;
 #define BH0_UART_RX_PIN GPIO_NUM_17
 #define BH0_UART_TX_PIN GPIO_NUM_18
 void uartListener(void *param);
-void onUARTDataReceived(uint8_t *data);
+void onUARTDataReceived(char *cmdText);
 #define UART_LISTENER_CORE 0
 #define UART_BLOCK_TICKS pdMS_TO_TICKS(portMAX_DELAY)
 volatile bool isConnected = false;
@@ -89,7 +89,7 @@ QueueHandle_t espNowRecvQueue;
 void espNowInit(void);
 void espNowDataRecvCallback(const uint8_t *mac_addr, const uint8_t *data, int len);
 void espNowListnener(void *param);
-void onESPNowDataReceived(espNowPacket_t *packet);
+void onESPNowDataReceived(char *cmdText);
 // UWB Communication =======================================================
 // NOTE : UWB Communication is handled by BH0, BH1 only receives data from BH0 via UART, so UWB related code is not included in this file.
 
@@ -219,7 +219,7 @@ void uartListener(void *param)
                     if(len > 0) 
                     {
                         data[len] = '\0';
-                        onUARTDataReceived(data);
+                        onUARTDataReceived((char *)data);
                     }
                     break;
                 
@@ -252,9 +252,8 @@ void uartListener(void *param)
     }
 }
 
-void onUARTDataReceived(uint8_t *data)
+void onUARTDataReceived(char *cmdText)
 {
-    char *cmdText = (char *) data;
     if(strcmp(cmdText, "PONG") == 0)
     {
         // Ping Pong Command, Do nothing
@@ -321,17 +320,74 @@ void espNowInit(void)
 
 void espNowDataRecvCallback(const uint8_t *mac_addr, const uint8_t *data, int len)
 {
-    //TODO : repay the techdept. Do this with my own hands.
+    espNowPacket_t buffer;
+    memcpy(buffer.macAddr, mac_addr, 6);
+    memcpy(buffer.data, data, len);
+    buffer.len = len;
+    xQueueSendFromISR(espNowRecvQueue, &buffer, NULL);
 }
 
 void espNowListnener(void *param)
 {
-    //TODO : Implement ESP-NOW Data Handling Logic
+    espNowPacket_t packet;
+    while(true)
+    {
+        if(xQueueReceive(espNowRecvQueue, &packet, portMAX_DELAY))
+        {
+            #ifdef __DEBUG__
+                Serial.println("ESP-NOW Data Received");
+            #endif
+            boolean isKnownSender = false;
+            for(int i = 0 ; i < MAX_BOARDS ; i++)
+            {
+                if(memcmp(packet.macAddr, MAC_ADDR[i], 6) == 0)
+                {
+                    isKnownSender = true;
+                    break;
+                }
+            }
+
+            if(!isKnownSender)
+            {
+                #ifdef __DEBUG__
+                    Serial.println("Unknown ESP-NOW Sender, Ignoring Packet");
+                #endif
+                continue;
+            }
+            else
+            {
+                if(packet.len > 0) 
+                {
+                    packet.data[packet.len] = '\0';
+                    onESPNowDataReceived((char *)&packet.data);
+                }
+                #ifdef __DEBUG__
+                    else
+                    {
+                        Serial.println("Received Empty ESP-NOW Packet");
+                    }
+                #endif
+            }
+        }
+    }
 }
 
-void onESPNowDataReceived(espNowPacket_t *packet)
+void onESPNowDataReceived(char *cmdText)
 {
-    //TODO : Implement ESP-NOW Data Handling Logic
+    if(strcmp(cmdText, "PONG") == 0)
+    {
+        // Ping Pong Command, Do nothing
+    }
+    else if(strcmp(cmdText, "") == 0)
+    {
+
+    }
+    else
+    {
+        #ifdef __DEBUG__
+            Serial.printf("Unknown ESP-NOW Command Received : %s\n", cmdText);
+        #endif
+    }
 }
 
 // extenral UI events============================================================
@@ -363,6 +419,7 @@ extern "C"
         #ifdef __DEBUG__
             Serial.println("Screen2 Loaded");
         #endif
+        
     }
 
     void unloadScreen3(lv_event_t * e)
