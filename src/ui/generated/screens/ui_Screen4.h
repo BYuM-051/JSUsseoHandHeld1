@@ -20,6 +20,8 @@ extern lv_obj_t * ui_SC4_Title;
 extern void ui_event_SC4ReturnButton(lv_event_t * e);
 extern lv_obj_t * ui_SC4ReturnButton;
 extern lv_obj_t * ui_SC4ReturnButtonLabel;
+extern lv_obj_t * ui_SC4_Footer_Panel;
+extern lv_obj_t * ui_SC4_Body_Panel;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

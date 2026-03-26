@@ -15,17 +15,19 @@ extern void ui_Screen2_screen_init(void);
 extern void ui_Screen2_screen_destroy(void);
 extern void ui_event_Screen2(lv_event_t * e);
 extern lv_obj_t * ui_Screen2;
-extern void ui_event_CallRobotButton(lv_event_t * e);
-extern lv_obj_t * ui_CallRobotButton;
-extern lv_obj_t * ui_CallRobotButtonLabel;
-extern void ui_event_ToShelterButton(lv_event_t * e);
-extern lv_obj_t * ui_ToShelterButton;
-extern lv_obj_t * ui_ToShelterButtonLabel;
 extern lv_obj_t * ui_SC2_Title_Panel;
 extern lv_obj_t * ui_SC2_Title;
 extern void ui_event_SC2ReturnButton(lv_event_t * e);
 extern lv_obj_t * ui_SC2ReturnButton;
 extern lv_obj_t * ui_SC2ReturnButtonLabel;
+extern lv_obj_t * ui_SC2_Body_Panel;
+extern lv_obj_t * ui_SC2_Footer_Panel;
+extern void ui_event_ToShelterButton(lv_event_t * e);
+extern lv_obj_t * ui_ToShelterButton;
+extern lv_obj_t * ui_ToShelterButtonLabel;
+extern void ui_event_CallRobotButton(lv_event_t * e);
+extern lv_obj_t * ui_CallRobotButton;
+extern lv_obj_t * ui_CallRobotButtonLabel;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

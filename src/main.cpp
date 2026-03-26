@@ -3,10 +3,6 @@
 #include <Wire.h>
 #include "gui.h"
 #include "ui.h"
-// #include "screens/ui_Screen1.h"
-// #include "screens/ui_Screen2.h"
-// #include "screens/ui_Screen3.h"
-// #include "screens/ui_Screen4.h"
 #include "ui_events.h"
 
 #define __DEBUG__
@@ -22,11 +18,19 @@ void uiHandle(void* param);
 void setup();
 void loop();
 
+volatile TickType_t lastBRUpdateTime = 0;
+volatile TickType_t lastBSUpdateTime = 0;
+volatile uint32_t distanceBetweenBHAndBR = 0;
+volatile uint32_t distanceBetweenBHAndBS = 0;
+
+#define BH0_UART_RX_PIN GPIO_NUM_17
+#define BH0_UART_TX_PIN GPIO_NUM_18
+void uartListener(void *param);
+void onUARTDataReceived(void *param);
+#define UART_LISTENER_CORE 0
 #ifdef __DEBUG__
 #define DEVICE_CHECK_CORE 0
 #define UART_TIMEOUT_MS 200
-#define BH0_UART_RX_PIN GPIO_NUM_17
-#define BH0_UART_TX_PIN GPIO_NUM_18
 void deviceInfoCheck(void *param) // TODO : refactor this with char array buffer instead of String to avoid dynamic memory allocation
 {
 
@@ -65,33 +69,39 @@ void deviceInfoCheck(void *param) // TODO : refactor this with char array buffer
 
 void setup() 
 {
+    // Initialize Serial ========================================================
     #ifdef __DEBUG__
     
     Serial.begin(115200);
     while (!Serial) { delay(10); }
     Serial.println("Serial initialized");
     #endif
+    //===========================================================================
 
+    // Initialize GUI System ====================================================
     gui_start();
     delay(1000);
     #ifdef __DEBUG__
         lv_label_set_text(ui_DebugLabel, "DEBUG : ENABLED");
         lv_label_set_text(ui_SerialLabel, "BH0 : Searching...");
+    #else
+        ui_DebugLabel->set_hidden(true);
+        ui_SerialLabel->set_hidden(true);
     #endif
 
     xTaskCreatePinnedToCore
     (
         uiHandle,
-        "GUI",
+        "uiHandle",
         4096 * 3,
         NULL,
         1,
         NULL,
         UICore
     );
+    //===========================================================================
 
-
-
+    // Initialize UART for BH0 Communication ====================================
     HHUWB.begin(115200, SERIAL_8N1, BH0_UART_RX_PIN, BH0_UART_TX_PIN);
     HHUWB.setTimeout(100);
     delay(500); // delay to ensure Serial is ready before sending data
@@ -110,6 +120,17 @@ void setup()
         );
     #endif
 
+    xTaskCreatePinnedToCore
+    (
+        uartListener,
+        "uartListener",
+        4096,
+        NULL,
+        1,
+        NULL,
+        UART_LISTENER_CORE
+    );
+    //===========================================================================
 }
 
 void loop()
@@ -117,8 +138,8 @@ void loop()
 
 }
 
-
-void uiHandle(void* param)
+// UI Handler Task ==============================================================
+void uiHandle(void *param)
 {
     TickType_t lastWakeTime = xTaskGetTickCount();
     constexpr TickType_t frequency = pdMS_TO_TICKS(10);
@@ -126,8 +147,10 @@ void uiHandle(void* param)
     {
         if(isLabelUpdateExists)
         {
-            Serial.print("UI : ");
-            Serial.println(isConnected ? "BH0 : Connected" : "BH0 : Disconnected");
+            #ifdef __DEBUG__
+                Serial.print("UI : ");
+                Serial.println(isConnected ? "BH0 : Connected" : "BH0 : Disconnected");
+            #endif
             lv_label_set_text(ui_SerialLabel, isConnected ? "BH0 : Connected" : "BH0 : Disconnected");
             lv_obj_invalidate(ui_SerialLabel);
             isLabelUpdateExists = false;
@@ -138,6 +161,23 @@ void uiHandle(void* param)
     }
 }
 
+// UART Listener Task ===========================================================
+void uartListener(void *param)
+{
+    TickType_t lastWakeTime = xTaskGetTickCount();
+    constexpr TickType_t frequency = pdMS_TO_TICKS(10);
+    while(true)
+    {
+
+    }
+}
+
+void onUARTDataReceived(void *param)
+{
+    vTaskDelete(NULL);
+}
+
+// extenral UI events============================================================
 extern "C" 
 {
     void unloadScreen1(lv_event_t * e)
