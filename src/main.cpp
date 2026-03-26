@@ -2,7 +2,7 @@
 #include <RTOS.h>
 #define __DEBUG__
 
-#define currentBoard BH1
+#define CurrentBoard BH1
 // arduino core ============================================================
 #include <Arduino.h>
 void setup();
@@ -63,6 +63,7 @@ volatile TickType_t lastBSUpdateTime = 0;
 volatile uint32_t distanceBetweenBHAndBR = 0;
 volatile uint32_t distanceBetweenBHAndBS = 0;
 
+void uart_init(void);
 void uartListener(void *param);
 void onUARTDataReceived(char *cmdText);
 void uartPrintf(uart_port_t uart_num, const char *format, ...);
@@ -136,30 +137,7 @@ void setup()
     //===========================================================================
 
     // Initialize UART for BH0 Communication ====================================
-    constexpr uart_port_t hhuwbUART = UART_NUM_1;
-    uart_config_t uartConfig = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity    = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
-    };
-    uart_param_config(hhuwbUART, &uartConfig);
-    uart_set_pin(hhuwbUART, BH0_UART_TX_PIN, BH0_UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-    uart_driver_install(hhuwbUART, 1024 * 2, 1024 * 2, 20, &hhuwbEventQueue, 0);
-    
-    delay(500); // delay to ensure Serial is ready before sending data
-
-    xTaskCreatePinnedToCore
-    (
-        uartListener,
-        "uartListener",
-        4096,
-        NULL,
-        1,
-        NULL,
-        UART_LISTENER_CORE
-    );
+    uart_init();
     //===========================================================================
 
     // Initialize ESP-NOW Communication =========================================
@@ -196,17 +174,42 @@ void uiHandle(void *param)
     }
 }
 
-// UART Listener Task ===========================================================
+// UART Communication ===========================================================
+void uart_init(void)
+{
+    uart_config_t uartConfig = 
+    {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity    = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+    };
+    uart_param_config(HHUWB, &uartConfig);
+    uart_set_pin(HHUWB, BH0_UART_TX_PIN, BH0_UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    uart_driver_install(HHUWB, 1024 * 2, 1024 * 2, 20, &hhuwbEventQueue, 0);
+    
+    delay(500); // delay to ensure Serial is ready before sending data
+
+    xTaskCreatePinnedToCore
+    (
+        uartListener,
+        "uartListener",
+        4096,
+        NULL,
+        1,
+        NULL,
+        UART_LISTENER_CORE
+    );
+}
+
 void uartListener(void *param) 
 {
     uart_event_t event;
-    uint8_t* data = (uint8_t*) malloc(MAX_SERIAL_LENGTH * sizeof(char));
+    uint8_t data[MAX_SERIAL_LENGTH];
     
     while(true) 
     {
-        #ifdef __DEBUG__
-            Serial.println("UART Listener Task Running");
-        #endif
         if(xQueueReceive(hhuwbEventQueue, (void *)&event, UART_BLOCK_TICKS)) 
         {
             #ifdef __DEBUG__
@@ -241,20 +244,21 @@ void uartListener(void *param)
                     break;
             }
         }
-        #ifdef __DEBUG__
         else
         {
-            uart_write_bytes(UART_NUM_1, "PING\n", 5);
-            if(pingCount > MAX_PING_COUNT)
-            {
-                pingCount = 0;
-                isLabelUpdateExists = isConnected;
-                isConnected = false;
-            }
-            else
-                {pingCount++;}
+            #ifdef __DEBUG__
+                uart_write_bytes(UART_NUM_1, "PING\n", 5);
+                if(pingCount > MAX_PING_COUNT)
+                {
+                    pingCount = 0;
+                    isLabelUpdateExists = isConnected;
+                    isConnected = false;
+                }
+                else
+                    {pingCount++;}
+            #endif
         }
-        #endif
+        
     }
 }
 
@@ -303,7 +307,7 @@ void espNowInit(void)
         esp_now_peer_info_t peerInfo = {};
         peerInfo.channel = ESP_NOW_CHANNEL;
         peerInfo.encrypt = false;
-        if(i == currentBoard)
+        if(i == CurrentBoard)
         {
             peerInfo.peer_addr[0] = 0x02; // Locally Administered dummy Address
         }
@@ -382,7 +386,7 @@ void espNowListnener(void *param)
                 if(packet.len > 0) 
                 {
                     packet.data[packet.len] = '\0';
-                    onESPNowDataReceived((char *)&packet.data);
+                    onESPNowDataReceived((char *)packet.data);
                 }
                 #ifdef __DEBUG__
                     else
