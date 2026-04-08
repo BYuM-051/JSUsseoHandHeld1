@@ -1,6 +1,4 @@
-SET(SOURCES components/ui_comp_debuglabel.c
-    components/ui_comp.c
-    screens/ui_Screen1.c
+SET(SOURCES screens/ui_Screen1.c
     screens/ui_Screen2.c
     screens/ui_Screen3.c
     screens/ui_Screen4.c
