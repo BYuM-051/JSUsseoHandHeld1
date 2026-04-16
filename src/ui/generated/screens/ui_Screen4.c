@@ -52,7 +52,7 @@ void ui_Screen4_screen_init(void)
     lv_obj_set_width(ui_Robot_Deployed_Guding_To_Shelter, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Robot_Deployed_Guding_To_Shelter, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_Robot_Deployed_Guding_To_Shelter, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_Robot_Deployed_Guding_To_Shelter, "Robot Deployed\n\nGuiding To Shelter");
+    lv_label_set_text(ui_Robot_Deployed_Guding_To_Shelter, "Robot Deployed\n\nWait For Robot...");
     lv_obj_set_style_text_color(ui_Robot_Deployed_Guding_To_Shelter, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Robot_Deployed_Guding_To_Shelter, 255, LV_PART_MAIN | LV_STATE_DEFAULT);

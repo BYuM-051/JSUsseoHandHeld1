@@ -10,6 +10,7 @@ lv_obj_t * ui_SC3_Title_Panel = NULL;
 lv_obj_t * ui_Redirecting_Robot = NULL;
 lv_obj_t * ui_SC3ReturnButton = NULL;
 lv_obj_t * ui_SC3ReturnButtonLabel = NULL;
+lv_obj_t * ui_Label1 = NULL;
 // event funtions
 void ui_event_Screen3(lv_event_t * e)
 {
@@ -75,6 +76,13 @@ void ui_Screen3_screen_init(void)
     lv_label_set_text(ui_SC3ReturnButtonLabel, "<");
     lv_obj_set_style_text_font(ui_SC3ReturnButtonLabel, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_Label1 = lv_label_create(ui_Screen3);
+    lv_obj_set_width(ui_Label1, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label1, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Label1, -962);
+    lv_obj_set_y(ui_Label1, 382);
+    lv_obj_set_align(ui_Label1, LV_ALIGN_BOTTOM_LEFT);
+
     lv_obj_add_event_cb(ui_SC3ReturnButton, ui_event_SC3ReturnButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Screen3, ui_event_Screen3, LV_EVENT_ALL, NULL);
 
@@ -90,5 +98,6 @@ void ui_Screen3_screen_destroy(void)
     ui_Redirecting_Robot = NULL;
     ui_SC3ReturnButton = NULL;
     ui_SC3ReturnButtonLabel = NULL;
+    ui_Label1 = NULL;
 
 }

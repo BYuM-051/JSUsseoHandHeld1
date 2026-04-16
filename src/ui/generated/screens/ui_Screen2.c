@@ -15,6 +15,8 @@ lv_obj_t * ui_Robot_Not_Needed_Button = NULL;
 lv_obj_t * ui_Robot_Not_Needed_Button_Lable = NULL;
 lv_obj_t * ui_Deploy_Robot_Button = NULL;
 lv_obj_t * ui_Deploy_Robot_Button_Lable = NULL;
+lv_obj_t * ui_Deploy_Robot_Recommend_Label = NULL;
+lv_obj_t * ui_Deploy_Robot_Recommend_Label2 = NULL;
 // event funtions
 void ui_event_Screen2(lv_event_t * e)
 {
@@ -106,9 +108,9 @@ void ui_Screen2_screen_init(void)
 
     ui_Robot_Not_Needed_Button = lv_btn_create(ui_SC2_Body_Panel);
     lv_obj_set_width(ui_Robot_Not_Needed_Button, 300);
-    lv_obj_set_height(ui_Robot_Not_Needed_Button, 320);
-    lv_obj_set_x(ui_Robot_Not_Needed_Button, -19);
-    lv_obj_set_y(ui_Robot_Not_Needed_Button, 7);
+    lv_obj_set_height(ui_Robot_Not_Needed_Button, 240);
+    lv_obj_set_x(ui_Robot_Not_Needed_Button, -22);
+    lv_obj_set_y(ui_Robot_Not_Needed_Button, -48);
     lv_obj_set_align(ui_Robot_Not_Needed_Button, LV_ALIGN_RIGHT_MID);
     lv_obj_add_flag(ui_Robot_Not_Needed_Button, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Robot_Not_Needed_Button, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
@@ -125,9 +127,9 @@ void ui_Screen2_screen_init(void)
 
     ui_Deploy_Robot_Button = lv_btn_create(ui_SC2_Body_Panel);
     lv_obj_set_width(ui_Deploy_Robot_Button, 300);
-    lv_obj_set_height(ui_Deploy_Robot_Button, 320);
-    lv_obj_set_x(ui_Deploy_Robot_Button, 24);
-    lv_obj_set_y(ui_Deploy_Robot_Button, 10);
+    lv_obj_set_height(ui_Deploy_Robot_Button, 240);
+    lv_obj_set_x(ui_Deploy_Robot_Button, 22);
+    lv_obj_set_y(ui_Deploy_Robot_Button, -48);
     lv_obj_set_align(ui_Deploy_Robot_Button, LV_ALIGN_LEFT_MID);
     lv_obj_add_flag(ui_Deploy_Robot_Button, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Deploy_Robot_Button, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
@@ -142,6 +144,26 @@ void ui_Screen2_screen_init(void)
     lv_label_set_text(ui_Deploy_Robot_Button_Lable, "Deploy\nRobot\n");
     lv_obj_set_style_text_align(ui_Deploy_Robot_Button_Lable, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_Deploy_Robot_Button_Lable, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Deploy_Robot_Recommend_Label = lv_label_create(ui_SC2_Body_Panel);
+    lv_obj_set_width(ui_Deploy_Robot_Recommend_Label, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Deploy_Robot_Recommend_Label, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Deploy_Robot_Recommend_Label, 22);
+    lv_obj_set_y(ui_Deploy_Robot_Recommend_Label, 136);
+    lv_obj_set_align(ui_Deploy_Robot_Recommend_Label, LV_ALIGN_LEFT_MID);
+    lv_label_set_text(ui_Deploy_Robot_Recommend_Label, "Reccomend\n70%");
+    lv_obj_set_style_text_align(ui_Deploy_Robot_Recommend_Label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_Deploy_Robot_Recommend_Label, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Deploy_Robot_Recommend_Label2 = lv_label_create(ui_SC2_Body_Panel);
+    lv_obj_set_width(ui_Deploy_Robot_Recommend_Label2, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Deploy_Robot_Recommend_Label2, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_Deploy_Robot_Recommend_Label2, -22);
+    lv_obj_set_y(ui_Deploy_Robot_Recommend_Label2, 136);
+    lv_obj_set_align(ui_Deploy_Robot_Recommend_Label2, LV_ALIGN_RIGHT_MID);
+    lv_label_set_text(ui_Deploy_Robot_Recommend_Label2, "Reccomend\n30%");
+    lv_obj_set_style_text_align(ui_Deploy_Robot_Recommend_Label2, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_Deploy_Robot_Recommend_Label2, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_add_event_cb(ui_SC2ReturnButton, ui_event_SC2ReturnButton, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Robot_Not_Needed_Button, ui_event_Robot_Not_Needed_Button, LV_EVENT_ALL, NULL);
@@ -165,5 +187,7 @@ void ui_Screen2_screen_destroy(void)
     ui_Robot_Not_Needed_Button_Lable = NULL;
     ui_Deploy_Robot_Button = NULL;
     ui_Deploy_Robot_Button_Lable = NULL;
+    ui_Deploy_Robot_Recommend_Label = NULL;
+    ui_Deploy_Robot_Recommend_Label2 = NULL;
 
 }

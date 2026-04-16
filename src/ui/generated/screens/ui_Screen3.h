@@ -20,6 +20,7 @@ extern lv_obj_t * ui_Redirecting_Robot;
 extern void ui_event_SC3ReturnButton(lv_event_t * e);
 extern lv_obj_t * ui_SC3ReturnButton;
 extern lv_obj_t * ui_SC3ReturnButtonLabel;
+extern lv_obj_t * ui_Label1;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

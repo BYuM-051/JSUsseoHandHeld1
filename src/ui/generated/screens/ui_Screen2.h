@@ -27,6 +27,8 @@ extern lv_obj_t * ui_Robot_Not_Needed_Button_Lable;
 extern void ui_event_Deploy_Robot_Button(lv_event_t * e);
 extern lv_obj_t * ui_Deploy_Robot_Button;
 extern lv_obj_t * ui_Deploy_Robot_Button_Lable;
+extern lv_obj_t * ui_Deploy_Robot_Recommend_Label;
+extern lv_obj_t * ui_Deploy_Robot_Recommend_Label2;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus
